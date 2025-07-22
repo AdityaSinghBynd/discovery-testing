@@ -1,0 +1,21 @@
+.customBtn {
+  background-color: #6965a1;
+  color: white;
+  opacity: 0.75;
+}
+
+.form {
+  border-radius: 20px;
+  border: #c9c4f8 2px solid;
+  background-color: #f8f8ff;
+  border-style: dashed;
+}
+
+.input {
+  background-color: white;
+  height: 5vh;
+}
+
+.input:hover {
+  background-color: #f8f8ff;
+}

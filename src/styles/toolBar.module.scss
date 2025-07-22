@@ -1,0 +1,121 @@
+.toolBarContainer {
+  max-width: 100%;
+  min-width: min-content;
+  width: auto;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: clamp(4px, 0.5vw, 6px);
+  padding: clamp(2px, 0.3vw, 3px);
+  border-radius: 8px;
+  border: 1px solid var(--Border-Subtle---01, #eaf0fc);
+  background: var(--Layer-01, #fff);
+  overflow-x: auto;
+  white-space: nowrap;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+
+  .toggleButton {
+    display: flex;
+    align-items: center;
+    gap: clamp(1px, 0.2vw, 2px);
+    padding: clamp(1px, 0.2vw, 2px);
+    border-radius: 6px;
+    background-color: var(--Layer-01, #eaf0fc);
+    min-width: fit-content;
+    flex-shrink: 0;
+
+    .imageToggleButton {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: clamp(3px, 0.4vw, 4px) clamp(6px, 0.8vw, 8px);
+      border: none;
+      cursor: pointer;
+      border-radius: 6px;
+      background-color: transparent;
+      flex-shrink: 0;
+
+      img {
+        width: clamp(16px, 2vw, 18px);
+        height: clamp(16px, 2vw, 18px);
+        object-fit: contain;
+      }
+
+      &:hover {
+        background-color: #fff;
+        border-radius: 4px;
+      }
+
+      &.selected {
+        background-color: #fff;
+        border-radius: 4px;
+      }
+    }
+  }
+
+  .askAI,
+  .edit {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: clamp(1px, 0.2vw, 2px);
+    gap: clamp(3px, 0.4vw, 4px);
+    cursor: pointer;
+    min-width: fit-content;
+    flex-shrink: 0;
+
+    &:hover {
+      border-radius: 4px;
+      background: var(--Layer-03, #f7f9fe);
+    }
+
+    label {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+
+      img {
+        width: clamp(14px, 1.8vw, 16px);
+        height: clamp(14px, 1.8vw, 16px);
+        object-fit: contain;
+      }
+    }
+  }
+
+  .copyAdd {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: clamp(3px, 0.4vw, 4px);
+    min-width: fit-content;
+    flex-shrink: 0;
+
+    img {
+      width: clamp(18px, 2vw, 20px);
+      height: clamp(18px, 2vw, 20px);
+      cursor: pointer;
+      padding: clamp(1px, 0.2vw, 2px);
+      transition: background-color 0.2s ease;
+      object-fit: contain;
+
+      &:hover {
+        border-radius: 4px;
+        background: var(--Layer-03, #f7f9fe);
+      }
+    }
+  }
+
+  .Pallete {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: fit-content;
+    flex-shrink: 0;
+  }
+}

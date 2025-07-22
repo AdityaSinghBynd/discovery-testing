@@ -1,0 +1,139 @@
+.workspaceContainer {
+  background-color: #f7f9fe;
+  border: none;
+  display: flex;
+  height: calc(100vh - 105px);
+  overflow: hidden;
+
+  &::-webkit-scrollbar {
+    width: 0;
+  }
+}
+
+.workspaceElements {
+  width: 40%;
+  height: 100%;
+  padding: 0 8px;
+  overflow-y: auto;
+  background-color: #f7f9fe;
+
+  &::-webkit-scrollbar {
+    width: 0;
+  }
+}
+
+.documentEditorArea {
+  width: 70%;
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+
+  &::-webkit-scrollbar {
+    width: 0px;
+  }
+}
+
+.documentEditorContainer {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+
+  &::-webkit-scrollbar {
+    width: 0px;
+  }
+
+  &:empty::before {
+    content: "Loading editor...";
+    color: #666;
+    padding: 20px;
+  }
+}
+
+.documentTitle {
+  background: white;
+  padding: 10px 0;
+
+  &:hover,
+  &:focus {
+    background: rgba(0, 0, 0, 0.05);
+  }
+}
+
+.editorContent {
+  flex: 1;
+
+  :global {
+    .ce-block__content {
+      max-width: none;
+      margin: 0 50px;
+    }
+
+    .ce-toolbar__content {
+      margin: 0 50px;
+      max-width: none;
+    }
+
+    .codex-editor__redactor {
+      padding-bottom: 100px !important;
+    }
+
+    .codex-editor {
+      height: auto;
+    }
+  }
+}
+
+.image-tool__image {
+  margin: 0 auto;
+  max-width: 100%;
+
+  &[data-alignment="left"] {
+    margin-left: 0;
+  }
+
+  &[data-alignment="center"] {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  &[data-alignment="right"] {
+    margin-right: 0;
+    margin-left: auto;
+  }
+}
+.editorContent {
+  :global {
+    .ce-block__content {
+      max-width: 100% !important;
+    }
+
+    .tc-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 15px 0;
+
+      tr {
+        border: 1px solid #dbdbe2;
+      }
+
+      td,
+      th {
+        border: 1px solid #dbdbe2;
+        padding: 8px;
+        min-width: 100px;
+      }
+
+      th {
+        background-color: #f8f9fa;
+        font-weight: 600;
+      }
+    }
+  }
+}

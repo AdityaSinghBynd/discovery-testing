@@ -1,0 +1,43 @@
+.recentlyUpdated {
+  margin-top: 20px;
+
+  h3 {
+    font-weight: 600;
+    margin-bottom: 15px;
+  }
+
+  ul {
+    list-style-type: none;
+    padding: 0;
+
+    li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+      border-radius: 4px;
+      border: 2px solid #f0f0f0;
+      margin-bottom: 12px;
+
+      .itemContainer {
+        display: flex;
+        align-items: center;
+        flex: 1;
+
+        .itemDetails {
+          margin-left: 10px;
+
+          .subtext {
+            padding-top: 6px;
+            font-size: 12px;
+            color: #888;
+          }
+        }
+      }
+
+      .arrow {
+        color: #888;
+      }
+    }
+  }
+}

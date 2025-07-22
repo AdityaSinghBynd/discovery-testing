@@ -1,0 +1,87 @@
+.checkboxGroup {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 4px 0;
+
+  input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    margin: 2px 0 0 0;
+    cursor: pointer;
+    position: relative;
+    border: 1px solid #e4e7ec;
+    border-radius: 4px;
+    background-color: white;
+    appearance: none;
+
+    &:checked {
+      background-color: #0047cb;
+      border-color: #0047cb;
+
+      &::after {
+        content: "";
+        position: absolute;
+        left: 4px;
+        top: 1px;
+        width: 6px;
+        height: 10px;
+        border: solid white;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+      }
+    }
+  }
+
+  label {
+    font-size: 14px;
+    line-height: 20px;
+    color: #344054;
+
+    a {
+      color: #0047cb;
+      font-weight: 600;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+.showPasswordButton {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.passwordErrors {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+
+  p {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    font-size: 14px;
+    color: #344054;
+  }
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}

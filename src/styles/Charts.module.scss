@@ -1,0 +1,22 @@
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.cardHeaderContent {
+  flex: 1;
+}
+
+.cardDescription {
+  color: #4e5971;
+  font-size: 12px;
+  font-weight: normal;
+  line-height: 16px;
+}
+
+.toolbarContainer {
+  margin-left: auto;
+  display: flex;
+  justify-content: flex-end;
+}

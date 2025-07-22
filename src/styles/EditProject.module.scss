@@ -1,0 +1,115 @@
+.editProjectModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 23, 66, 0.25);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 500;
+}
+
+.editProject {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgb(255, 255, 255);
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow:
+    0px 22.667px 27.2px -4.533px rgba(16, 24, 40, 0.08),
+    0px 9.067px 9.067px -4.533px rgba(16, 24, 40, 0.03);
+  max-width: 700px;
+  width: 100%;
+  position: absolute;
+
+  h2 {
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+    color: #333;
+    text-align: left;
+  }
+
+  .closeButton {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    padding: 0.5rem;
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: #000000;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    outline: none;
+  }
+
+  .formGroup {
+    width: 100%;
+    margin-bottom: 1rem;
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
+      color: #000000;
+      text-align: left;
+      font-weight: 500;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid var(--Border-Subtle---01, #eaf0fc);
+      border-radius: 4px;
+      font-size: 1rem;
+      color: #333;
+      background-color: white;
+      outline: none;
+
+      &:focus {
+        border-color: #0070f3;
+      }
+    }
+
+    input::placeholder {
+      color: #bcbcbc;
+    }
+
+    textarea {
+      height: 100px;
+      resize: vertical;
+    }
+  }
+
+  .buttonGroup {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+    margin-top: 10px;
+
+    button {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      color: white;
+      background-color: #0070f3;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      outline: none;
+      transition: background-color 0.3s ease;
+
+      &:hover {
+        background-color: #005bb5;
+      }
+    }
+  }
+}

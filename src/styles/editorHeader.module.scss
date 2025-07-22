@@ -1,0 +1,106 @@
+@import "variables";
+
+.editorHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tab {
+  @include flexJustifyStartAlignCenter;
+  gap: 8px;
+  border-radius: 6px 6px 2px 2px;
+  background: #{$Layer01};
+  box-shadow: 1px 2px 4px 0px rgba(0, 76, 230, 0.05);
+  padding: 6px 8px;
+
+  label {
+    display: flex;
+    align-items: center;
+  }
+
+  p {
+    margin: 0;
+    color: #{$TextPrimary};
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 20px;
+  }
+}
+
+.exportButton {
+  background-color: transparent;
+  color: #{$TextSecondary};
+  border: none;
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-size: 14px;
+  cursor: pointer;
+
+  img {
+    width: 20px;
+    height: auto;
+  }
+}
+
+.exportCheckedButton {
+  border-radius: 4px;
+  background: #{$Layer03};
+  box-shadow: 1px 2px 4px 0px rgba(0, 76, 230, 0.05);
+  border: none;
+  padding: 4px 8px;
+  font-size: 14px;
+  cursor: pointer;
+
+  img {
+    width: 20px;
+    height: auto;
+  }
+}
+
+.exportMenu {
+  position: absolute;
+  right: 30px;
+  top: 5.5rem;
+  z-index: 1;
+  gap: 8px;
+  padding: 8px 12px;
+  display: inline-flex;
+  justify-content: center;
+  flex-direction: column;
+  border-radius: 8px;
+  border: #{$BorderSubtle01};
+  background: #{$Layer01};
+  box-shadow:
+    0px 2px 4px 0px rgba(48, 49, 51, 0.1),
+    0px 0px 1px 0px rgba(48, 49, 51, 0.05);
+
+  button {
+    @include flexJustifyStartAlignCenter;
+    width: 160px;
+    gap: 5px;
+    border: none;
+    border-radius: 4px;
+    background-color: transparent;
+    padding: 10px 12px;
+
+    &:hover {
+      background-color: #f1f5ff;
+    }
+
+    p {
+      color: #{$TextPrimary};
+      font-size: 14px;
+      font-style: normal;
+      font-weight: 400;
+      line-height: 20px;
+      margin: 0;
+    }
+
+    img {
+      width: 23px;
+      height: 23px;
+    }
+  }
+}

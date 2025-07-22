@@ -1,0 +1,308 @@
+.container {
+  padding: 10px 12px 0 12px;
+  background-color: transparent;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  max-height: 1000px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  gap: 4px;
+}
+
+.scrollableCardContainer {
+  height: calc(100% - 40px);
+  padding-bottom: 450px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.containerHeading {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  gap: 8px;
+
+  .containerHeadingName {
+    display: flex;
+    gap: 8px;
+
+    h3 {
+      color: var(--Text-Primary, #001742);
+      font-size: 18px;
+      font-style: normal;
+      font-weight: 600;
+      line-height: 24px;
+      margin: 0;
+    }
+  }
+
+  .pageNumber {
+    display: flex;
+    padding: 2px 8px;
+    align-items: center;
+    gap: 10px;
+    border-radius: 4px;
+    background: var(--Tag-colors-Blue-grey-tag-background, #eaecf5);
+
+    p {
+      margin: 0;
+      color: var(--Tag-colors-Blue-grey-tag-text, #363f72);
+      text-align: center;
+      font-size: 12px;
+      font-style: normal;
+      font-weight: 400;
+      line-height: 16px;
+    }
+  }
+}
+
+.cardHeader {
+  padding: 6px 8px;
+  background-color: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  gap: 8px;
+  transition:
+    background-color 0.3s ease-in-out,
+    border 0.3s ease-in-out,
+    box-shadow 0.3s ease-in-out;
+  border: 1px solid var(--Border-Subtle---01, #eaf0fc00);
+
+  .expandedCard & {
+    z-index: 1;
+    border: 1px solid var(--Border-Subtle---01, #eaf0fc);
+    background: #fbfdff;
+    box-shadow: 1px 2px 4px 0px rgba(0, 76, 230, 0.05);
+  }
+
+  &:hover {
+    border: 1px solid var(--Border-Subtle---01, #eaf0fc);
+    background: #fbfdff;
+    box-shadow: 1px 2px 4px 0px rgba(0, 76, 230, 0.05);
+  }
+
+  p {
+    color: var(--Text-Secondary, #4e5971);
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 16px;
+  }
+
+  .cardHeading {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-start;
+
+    label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px;
+      border-radius: 4px;
+      background: var(--Tag-colors-Blue-grey-tag-background, #eaecf5);
+
+      img {
+        width: 20px;
+        height: 20px;
+      }
+    }
+    h4 {
+      margin: 0;
+      color: var(--Text-Primary, #001742);
+      font-size: 16px;
+      font-style: normal;
+      font-weight: 600;
+    }
+  }
+
+  .cardItem {
+    border: 1px solid var(--Border-Subtle---01, #eaf0fc);
+    border-radius: 8px;
+    padding: 10px;
+    background: var(--Layer-01, #fff);
+    box-shadow: 1px 2px 4px 0px rgba(0, 76, 230, 0.05);
+    transition:
+      opacity 0.3s ease-in-out,
+      transform 0.3s ease-in-out;
+  }
+
+  .cardDescription {
+    margin-top: 5px;
+    padding-left: 32px;
+    width: 100%;
+
+    p {
+      color: var(--Text-Secondary, #4e5971);
+      font-size: 14px;
+      font-style: normal;
+      font-weight: 400;
+      line-height: 22px;
+      margin: 0;
+      white-space: normal;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+  }
+}
+
+.expandedContent {
+  display: flex;
+  flex-direction: column;
+  padding: 0 4px 0 8px;
+  margin-top: 0;
+  height: 100%;
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid var(--Border-Subtle---01, #eaf0fc);
+  background: var(--Layer-02, #fbfdff);
+  max-height: 0;
+  overflow: hidden;
+  transition:
+    max-height 0.3s ease-out,
+    opacity 0.3s ease-out;
+  opacity: 0;
+
+  &.active {
+    overflow: auto;
+    max-height: 280px;
+    opacity: 1;
+  }
+
+  &.expanded {
+    display: flex;
+    flex-direction: column;
+    max-height: 482px;
+    padding: 8px 4px 8px 8px;
+    margin-top: 4px;
+    overflow-y: auto;
+    border: 1px solid var(--Border-Subtle---01, #eaf0fc);
+    background-color: white;
+    background-color: #ba1b1b;
+  }
+
+  p {
+    color: var(--Text-Secondary, #4e5971);
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 22px;
+    margin: 0;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    padding-left: 32px;
+    margin-bottom: 0.5rem;
+  }
+
+  &::-webkit-scrollbar {
+    width: 10px;
+    border-radius: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f7f9fe;
+    border-radius: 2px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: #e4e7ec;
+    border-radius: 4px;
+    border: 2px solid #f7fafc;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: #e4e7ec;
+  }
+
+  .toolbarWrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-end;
+    position: relative;
+    top: 00px;
+    right: 0;
+    z-index: 1000;
+    padding: 8px;
+    pointer-events: auto;
+  }
+}
+
+@keyframes wave {
+  0% {
+    background-position: -468px 0;
+  }
+
+  100% {
+    background-position: 468px 0;
+  }
+}
+
+.pdfSkeleton {
+  width: 100%;
+  max-width: 1200px;
+  height: 100%;
+  margin: 0 auto;
+  padding-top: 12px;
+
+  p {
+    color: var(--Text-Primary, #001742);
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 24px;
+  }
+}
+
+.skeletonHeader {
+  height: 97px;
+  width: 100%;
+  margin-bottom: 12px;
+  border-radius: 4px;
+}
+
+.waveAnimation {
+  background: linear-gradient(
+    to right,
+    rgba(0, 23, 66, 0.08),
+    8%,
+    rgba(0, 23, 66, 0.04) 18%,
+    rgba(0, 23, 66, 0.08) 33%
+  );
+  background-size: 800px 104px;
+  animation: wave 1.5s infinite linear forwards;
+}
+
+.skeletonPages {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 10px;
+}
+
+.skeletonPage {
+  aspect-ratio: 3/4;
+  background-color: #fff;
+  border-radius: 8px;
+}
+
+.expandedContentContainer {
+  position: relative;
+  width: 100%;
+}
+
+.toolbarWrapper {
+  position: absolute;
+  top: -40px;
+  right: 0px;
+  z-index: 10;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  pointer-events: auto;
+  padding: 4px;
+  background: transparent;
+}

@@ -1,0 +1,26 @@
+.aiSummary {
+  height: 100%;
+
+  .layoutHeading {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 4px;
+
+    h3 {
+      color: var(--Text-Primary, #001742);
+      font-size: 18px;
+      font-style: normal;
+      font-weight: 600;
+      line-height: 24px;
+      margin: 0;
+    }
+  }
+}
+
+.container {
+  padding: 8px;
+  max-height: 800px;
+  height: 100%;
+  background-color: #f7f9fe;
+  overflow-y: auto;
+}

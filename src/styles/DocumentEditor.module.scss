@@ -1,0 +1,340 @@
+@import "variables";
+
+.editorContainer {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0 8px;
+  gap: 8px;
+  background-color: transparent;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+
+    &-track {
+      background: #f7fafc;
+      border-radius: 4px;
+    }
+
+    &-thumb {
+      background-color: #cbd5e0;
+      border-radius: 4px;
+      border: 2px solid #f7fafc;
+
+      &:hover {
+        background-color: #a0aec0;
+      }
+    }
+  }
+}
+
+.header {
+  @include flexBetween;
+  background-color: transparent;
+  padding: 0;
+  margin-bottom: 8px;
+}
+
+.tab {
+  @include flexJustifyStartAlignCenter;
+  gap: 8px;
+  border-radius: 6px 6px 2px 2px;
+  background: #{$Layer01};
+  box-shadow: 1px 2px 4px 0px rgba(0, 76, 230, 0.05);
+  padding: 6px 8px;
+
+  label {
+    display: flex;
+    align-items: center;
+  }
+
+  p {
+    margin: 0;
+    color: #{$TextPrimary};
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 20px;
+  }
+}
+
+.exportButton {
+  background-color: transparent;
+  color: #{$TextSecondary};
+  border: none;
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-size: 14px;
+  cursor: pointer;
+
+  img {
+    width: 20px;
+    height: auto;
+  }
+}
+
+.exportCheckedButton {
+  border-radius: 4px;
+  background: #{$Layer03};
+  box-shadow: 1px 2px 4px 0px rgba(0, 76, 230, 0.05);
+  border: none;
+  padding: 4px 8px;
+  font-size: 14px;
+  cursor: pointer;
+
+  img {
+    width: 20px;
+    height: auto;
+  }
+}
+
+.editor {
+  @include flexColumn;
+  min-height: 100%;
+  height: auto;
+  padding: 32px 16px 0px 16px;
+  border-radius: 9px 9px var(--Corner-Radius-Rounded---0, 0px)
+    var(--Corner-Radius-Rounded---0, 0px);
+  background: #{$Layer01};
+  box-shadow: 0px -2px 12px 0px rgba(0, 71, 203, 0.05);
+  overflow: auto;
+  position: relative;
+}
+
+.titleInput {
+  width: 100%;
+  border: none;
+  outline: none;
+  padding: 0px 8px;
+  background-color: transparent;
+  color: #{$TextPrimary};
+  font-size: 24px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 26px;
+  margin-bottom: 32px;
+  overflow: hidden;
+  word-break: break-word;
+  resize: none;
+  height: auto;
+  min-height: 26px;
+}
+
+.blockContainer {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 1px;
+  position: relative;
+  transition:
+    background-color 0.2s ease,
+    padding 0.2s ease;
+  overflow-x: hidden; // Prevent horizontal overflow
+
+  &:hover {
+    .blockActions {
+      opacity: 1;
+    }
+  }
+
+  &.dragging {
+    box-shadow: 0 0 10px rgba(26, 24, 24, 0.3);
+  }
+
+  &.dragOver {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    background-color: #cfe0f340;
+    &::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+    }
+  }
+}
+
+.blockWrapper {
+  @include flexColumn;
+  align-items: center;
+  width: 100%;
+}
+
+.blockContent {
+  font-size: 16px;
+  padding: 8px 2px;
+  background-color: transparent;
+  color: #{$TextSecondary};
+  width: 100%;
+  border: none;
+  outline: none;
+  resize: none;
+  overflow: hidden;
+  line-height: 1.5;
+  padding: 0;
+  margin: 0;
+
+  &::placeholder {
+    color: #{$TextPlaceholder};
+  }
+}
+
+.blockActions {
+  @include flexJustifyStartAlignCenter;
+  padding: 8px 4px 0 0;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.dragHandle {
+  @include flexCenter;
+  width: 24px;
+  height: 24px;
+  cursor: grab;
+  margin-bottom: 4px;
+
+  &:hover {
+    background-color: rgba(55, 53, 47, 0.08);
+    border-radius: 3px;
+  }
+}
+
+.addBlockButton {
+  @include flexCenter;
+  width: 24px;
+  height: 24px;
+  margin-bottom: 4px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: rgba(55, 53, 47, 0.08);
+    border-radius: 3px;
+  }
+}
+
+.imageWrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+  }
+}
+.blockContent {
+  display: flex;
+  flex-grow: 1;
+  font-size: 16px;
+  padding: 8px 2px;
+  background-color: transparent;
+  color: #{$TextSecondary};
+  width: 100%;
+  border: none;
+  outline: none;
+  resize: none;
+  overflow: hidden;
+  line-height: 1.5;
+  margin: 0;
+
+  &::placeholder {
+    color: #{$TextPlaceholder};
+  }
+}
+
+.blockWrapper {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.bold {
+  font-weight: bold;
+}
+
+.italic {
+  font-style: italic;
+}
+
+.underline {
+  text-decoration: underline;
+}
+
+.formattingTools {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 5px;
+}
+
+.formattingToolbar {
+  position: absolute;
+  background-color: #{$Layer01};
+  border: #{$BorderSubtle01};
+  border-radius: 4px;
+  padding: 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  z-index: 2000;
+  display: flex;
+  gap: 5px;
+
+  button {
+    padding: 2px 5px;
+    background: none;
+    border: #{$BorderSubtle01};
+    border-radius: 3px;
+    cursor: pointer;
+    font-weight: bold;
+
+    &:hover {
+      background-color: #f0f0f0;
+    }
+  }
+}
+
+.exportMenu {
+  position: absolute;
+  right: 20px;
+  top: 30px;
+  z-index: 1;
+  gap: 8px;
+  padding: 8px 12px;
+  display: inline-flex;
+  justify-content: center;
+  flex-direction: column;
+  border-radius: 8px;
+  border: #{$BorderSubtle01};
+  background: #{$Layer01};
+  box-shadow:
+    0px 2px 4px 0px rgba(48, 49, 51, 0.1),
+    0px 0px 1px 0px rgba(48, 49, 51, 0.05);
+
+  button {
+    @include flexJustifyStartAlignCenter;
+    width: 160px;
+    gap: 5px;
+    border: none;
+    border-radius: 4px;
+    background-color: transparent;
+    padding: 10px 12px;
+
+    &:hover {
+      background-color: #f1f5ff;
+    }
+
+    p {
+      color: #{$TextPrimary};
+      font-size: 14px;
+      font-style: normal;
+      font-weight: 400;
+      line-height: 20px;
+      margin: 0;
+    }
+
+    img {
+      width: 23px;
+      height: 23px;
+    }
+  }
+}

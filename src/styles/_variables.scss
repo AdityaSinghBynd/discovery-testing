@@ -1,0 +1,83 @@
+// Background Colors
+$Layer01: #ffffff;
+$Layer02: #fbfdff;
+$Layer03: #f7f9fe;
+$Layer04: #F3F6FF;
+
+// Text Colors
+$TextPrimary: #001742;
+$TextSecondary: #4e5971;
+$TextPlaceholder: #9babc7;
+$TextError: #d92d20;
+
+$BorderSubtle01: 1px solid #eaf0fc;
+$BorderDashed: 2px dashed #eaf0fc;
+$BorderTransparent: 1px solid transparent;
+
+// Mixins for layout
+@mixin flexColumn {
+  display: flex;
+  flex-direction: column;
+}
+
+@mixin flexCenter {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+@mixin flexColumnCenter {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+@mixin flexJustifyStartAlignCenter {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+@mixin flexJustifyEndAlignCenter {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+@mixin flexAlignCenter {
+  display: flex;
+  align-items: center;
+}
+
+@mixin flexColumnAlignStart {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+@mixin flexColoumnCenter {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+@mixin flexColoumnStart {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+@mixin flexBetween {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+@mixin flexColumnBetween {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}

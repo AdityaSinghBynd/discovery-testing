@@ -1,0 +1,129 @@
+.accountSettings {
+  width: 100%;
+  padding: 20px;
+
+  .container {
+    background-color: #f6f8fb;
+    padding: 20px;
+    margin: 25px;
+    border-radius: 10px;
+
+    .accountDetailsContainer {
+      max-width: 700px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px;
+      border-radius: 20px;
+    }
+  }
+
+  .disabledInput {
+    color: #98a2b3;
+    border: 1px solid var(--border, #e4e7ec);
+    background: var(--Layer-Disabled, #f2f4f7);
+  }
+
+  h2 {
+    font-size: 20px;
+    margin-bottom: 20px;
+    font-weight: bold;
+  }
+
+  .formGroup {
+    margin-bottom: 20px;
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-family: Inter;
+      font-size: 14px;
+      font-style: normal;
+      font-weight: 500;
+      line-height: 20px;
+    }
+
+    input {
+      flex: 1;
+      border: none;
+      height: 80%;
+      width: 90%;
+      border-radius: 6px;
+      padding: 5px;
+      border: 1px solid var(--border, #e4e7ec);
+    }
+    ::placeholder {
+      color: #98a2b3;
+    }
+  }
+
+  .updateButton {
+    margin-top: 18px;
+    gap: 8px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    background-color: #004ce6;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #0056b3;
+    }
+  }
+}
+
+.succesMessageContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  z-index: 500;
+  left: 700px;
+}
+
+.errorMessageContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  z-index: 500;
+  left: 700px;
+}
+
+.errorMessage {
+  padding: 20px;
+  border-radius: 6px;
+  background-color: rgb(255, 229, 229);
+  border: 2px solid var(--Border-Success, #fad1d1);
+  box-shadow:
+    0px 8px 16px 0px rgba(48, 49, 51, 0.1),
+    0px 0px 1px 0px rgba(48, 49, 51, 0.05);
+  color: #101828;
+  max-width: 390px;
+  width: 100%;
+  text-align: center;
+
+  img {
+    margin-right: 10px;
+  }
+}
+
+.succesMessage {
+  padding: 20px;
+  border-radius: 6px;
+  background-color: #f6fef9;
+  border: 2px solid var(--Border-Success, #d1fadf);
+  box-shadow:
+    0px 8px 16px 0px rgba(48, 49, 51, 0.1),
+    0px 0px 1px 0px rgba(48, 49, 51, 0.05);
+  color: #101828;
+  max-width: 390px;
+  width: 100%;
+  text-align: center;
+
+  img {
+    margin-right: 10px;
+  }
+}
