@@ -11,7 +11,7 @@ import { RootState, AppDispatch } from "@/store/store";
 import { useDispatch, useSelector } from "react-redux";
 import { setIsSimilarTablesOpen } from "@/redux/modals/similarTables/similarTablesSlice";
 import { selectTableChunks } from '@/redux/chunks/selector';
-import { fetchSimilarTables } from "@/redux/similarTables/similarTablesSlice";
+import { fetchSimilarTables, fetchPreviewData } from "@/redux/modals/similarTables/similarTablesThunks";
 // Components
 import PrimaryTable from "./PrimaryTable";
 import SecondaryTable from "./SecondaryTable";
@@ -21,11 +21,13 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 // Utils
 import { findSectionIndex } from "@/utils/utils";
 // Interfaces
-import { 
-    SimilarTableData, 
-    SelectedTable, 
+import {
+    SimilarTableData,
+    SelectedTable,
     SelectedDocument,
-    ProcessedTableData 
+    ProcessedTableData,
+    CombinedTablesPayload,
+    CombinedTableItem
 } from "@/redux/modals/similarTables/similiartable.interface";
 
 export function SimiliarTables() {
@@ -40,16 +42,18 @@ export function SimiliarTables() {
         activeDocument,
         projectSelectedDocuments,
         companyDocuments,
-        tableChunksData
+        tableChunksData,
+        previewData
     } = useSelector((state: RootState) => ({
         isSimilarTablesOpen: state.similarTables.isSimilarTablesOpen,
         tableId: state.similarTables.tableId,
         currentPage: state.similarTables.currentPage,
-        similarTablesState: state.similarTable?.similarTables || {},
+        similarTablesState: state.similarTables.similarTables || {},
         activeDocument: state.projectDocuments.activeDocument,
         projectSelectedDocuments: state.projectDocuments.selectedDocuments,
         companyDocuments: state.documents.documentLists,
-        tableChunksData: selectTableChunks(state)
+        tableChunksData: selectTableChunks(state),
+        previewData: state.similarTables.previewData
     }));
 
     // Local State Management
@@ -64,17 +68,21 @@ export function SimiliarTables() {
     // Similar Tables Data State - using ProcessedTableData for UI
     const [primaryTableData, setPrimaryTableData] = useState<ProcessedTableData | null>(null);
     const [similarTablesData, setSimilarTablesData] = useState<ProcessedTableData[]>([]);
-    const [similarTablesByYear, setSimilarTablesByYear] = useState<{[year: string]: ProcessedTableData[]}>({});
-    const {sections} = useSelector((state: RootState) => state.documents);
+    const [similarTablesByYear, setSimilarTablesByYear] = useState<{ [year: string]: ProcessedTableData[] }>({});
+    const { sections } = useSelector((state: RootState) => state.documents);
 
     // UI State
     const [showSimilarTables, setShowSimilarTables] = useState(false);
     const [selectedSecondaryTableId, setSelectedSecondaryTableId] = useState<string | number | null>(null);
+    const [selectedTablesByDocument, setSelectedTablesByDocument] = useState<{ [docId: number]: string | number }>({});
+
+    // Preview Data Loading State
+    const [isPreviewDataLoading, setIsPreviewDataLoading] = useState(false);
 
     // Computed Values
     const hasActiveDocument = Boolean(activeDocument);
     const hasCompanyDocuments = Boolean(companyDocuments[activeDocument?.companyName]?.length);
-    const hasSelectedTables = selectedTables.length > 1;
+    const hasSelectedTables = selectedTables.length > 1 || (selectedTables.length === 1 && selectedTables[0].id !== activeDocument?.id);
     const isDataLoaded = Boolean(primaryTableData || similarTablesData.length > 0);
 
     // Memoized company documents for current company
@@ -85,7 +93,7 @@ export function SimiliarTables() {
     // Memoized filtered company documents (excluding active document) sorted by year descending
     const filteredCompanyDocuments = useMemo(() => {
         const filtered = currentCompanyDocuments.filter((doc: any) => doc.name !== activeDocument?.name);
-        
+
         // Sort by year in descending order
         return filtered.sort((a: any, b: any) => {
             const yearA = parseInt(a.year) || 0;
@@ -170,7 +178,7 @@ export function SimiliarTables() {
         } finally {
             setIsLoading(false);
         }
-    }, [dispatch, activeDocument, hasCompanyDocuments, competitorUrls, tableId, currentPage, companyDocuments]);
+    }, [dispatch, activeDocument, hasCompanyDocuments, competitorUrls, tableId, currentPage]);
 
     // Process and categorize similar tables data by year
     const processSimilarTablesData = useCallback(() => {
@@ -178,7 +186,7 @@ export function SimiliarTables() {
             const tablesData = similarTablesState[tableId]?.data;
             if (!tablesData || !activeDocument) return;
 
-            const tablesByYear: {[year: string]: ProcessedTableData[]} = {};
+            const tablesByYear: { [year: string]: ProcessedTableData[] } = {};
 
             // Process the nested structure from API response
             Object.entries(tablesData).forEach(([companyName, companyData]: [string, any]) => {
@@ -222,9 +230,296 @@ export function SimiliarTables() {
         const yearTables = similarTablesByYear[year] || [];
         const bestMatch = yearTables.length > 0 ? yearTables[0] : null;
         const otherMatches = yearTables.slice(1);
-        
+
         return { bestMatch, otherMatches };
     }, [similarTablesByYear]);
+
+    // Handle document selection - only changes tab, doesn't affect checkbox
+    const handleDocumentSelection = useCallback((docId: number) => {
+        setActiveTab(`doc-${docId}`);
+    }, []);
+
+    // Handle checkbox selection - only affects checkbox and table selection
+    const handleCheckboxClick = useCallback((e: React.MouseEvent, docId: number) => {
+        e.stopPropagation(); // Prevent tab change when clicking checkbox
+        
+        const selectedDoc = currentCompanyDocuments.find((doc: any) => doc.id === docId);
+        if (!selectedDoc) return;
+
+        const isCurrentlySelected = selectedDocumentsList.some((selectedDoc) => selectedDoc.id === docId);
+        
+        if (!isCurrentlySelected) {
+            // Add document to selection
+            const docSelection: SelectedDocument = {
+                id: docId,
+                url: selectedDoc.url,
+                year: selectedDoc.year,
+                documentType: selectedDoc.documentType
+            };
+
+            setSelectedDocumentsList(prev => {
+                const exists = prev.some(doc => doc.id === docId);
+                return exists ? prev : [...prev, docSelection];
+            });
+
+            // Automatically select the best match for this year
+            const { bestMatch } = getTablesForYear(selectedDoc.year);
+            if (bestMatch) {
+                const bestMatchSelection: SelectedTable = {
+                    id: docId,
+                    blobUrl: selectedDoc.url,
+                    pageNumber: bestMatch.page_number,
+                    tableId: bestMatch.table_id,
+                    year: selectedDoc.year,
+                    documentType: selectedDoc.documentType,
+                    table_without_caption: bestMatch.table_without_caption || ""
+                };
+
+                setSelectedTables(prev => {
+                    const exists = prev.some(table =>
+                        table.id === docId && table.tableId === bestMatch.table_id
+                    );
+                    return exists ? prev : [...prev, bestMatchSelection];
+                });
+
+                // Update selected tables by document
+                setSelectedTablesByDocument(prev => ({
+                    ...prev,
+                    [docId]: bestMatch.table_id
+                }));
+            }
+        } else {
+            // Remove document from selection
+            setSelectedDocumentsList(prev => prev.filter(doc => doc.id !== docId));
+
+            // Remove all tables from this document
+            setSelectedTables(prev => prev.filter(table => table.id !== docId));
+
+            // Remove from selected tables by document
+            setSelectedTablesByDocument(prev => {
+                const newState = { ...prev };
+                delete newState[docId];
+                return newState;
+            });
+        }
+    }, [currentCompanyDocuments, getTablesForYear, selectedDocumentsList]);
+
+    // Handle document checkbox change (for backward compatibility)
+    const handleDocumentCheckboxChange = useCallback((docId: number, checked: boolean) => {
+        const selectedDoc = currentCompanyDocuments.find((doc: any) => doc.id === docId);
+        if (!selectedDoc) return;
+
+        if (checked) {
+            // Add document to selection
+            const docSelection: SelectedDocument = {
+                id: docId,
+                url: selectedDoc.url,
+                year: selectedDoc.year,
+                documentType: selectedDoc.documentType
+            };
+
+            setSelectedDocumentsList(prev => {
+                const exists = prev.some(doc => doc.id === docId);
+                return exists ? prev : [...prev, docSelection];
+            });
+
+            // Automatically select the best match for this year
+            const { bestMatch } = getTablesForYear(selectedDoc.year);
+            if (bestMatch) {
+                const bestMatchSelection: SelectedTable = {
+                    id: docId,
+                    blobUrl: selectedDoc.url,
+                    pageNumber: bestMatch.page_number,
+                    tableId: bestMatch.table_id,
+                    year: selectedDoc.year,
+                    documentType: selectedDoc.documentType,
+                    table_without_caption: bestMatch.table_without_caption || ""
+                };
+
+                setSelectedTables(prev => {
+                    const exists = prev.some(table =>
+                        table.id === docId && table.tableId === bestMatch.table_id
+                    );
+                    return exists ? prev : [...prev, bestMatchSelection];
+                });
+
+                // Update selected tables by document
+                setSelectedTablesByDocument(prev => ({
+                    ...prev,
+                    [docId]: bestMatch.table_id
+                }));
+            }
+        } else {
+            // Remove document from selection
+            setSelectedDocumentsList(prev => prev.filter(doc => doc.id !== docId));
+
+            // Remove all tables from this document
+            setSelectedTables(prev => prev.filter(table => table.id !== docId));
+
+            // Remove from selected tables by document
+            setSelectedTablesByDocument(prev => {
+                const newState = { ...prev };
+                delete newState[docId];
+                return newState;
+            });
+        }
+    }, [currentCompanyDocuments, getTablesForYear]);
+
+    // Handle table selection for secondary tables
+    const handleTableSelection = useCallback((
+        docId: number,
+        tableId: string | number,
+        blobUrl: string,
+        pageNumber: number,
+        year: string,
+        documentType: string,
+        table_without_caption: string
+    ) => {
+        // Ensure the document is selected when a table is selected
+        const selectedDoc = currentCompanyDocuments.find((doc: any) => doc.id === docId);
+        if (selectedDoc) {
+            const docSelection: SelectedDocument = {
+                id: docId,
+                url: selectedDoc.url,
+                year: selectedDoc.year,
+                documentType: selectedDoc.documentType
+            };
+
+            setSelectedDocumentsList(prev => {
+                const exists = prev.some(doc => doc.id === docId);
+                return exists ? prev : [...prev, docSelection];
+            });
+        }
+
+        setSelectedTables(prevTables => {
+            const existingIndex = prevTables.findIndex(
+                table => table.id === docId && table.tableId === tableId
+            );
+
+            if (existingIndex !== -1) {
+                // Remove if already selected
+                const newTables = prevTables.filter((_, index) => index !== existingIndex);
+                
+                // Update selected tables by document
+                setSelectedTablesByDocument(prev => {
+                    const newState = { ...prev };
+                    if (newTables.filter(table => table.id === docId).length === 0) {
+                        delete newState[docId];
+                    }
+                    return newState;
+                });
+                
+                return newTables;
+            } else {
+                // Add new selection
+                const newTable: SelectedTable = {
+                    id: docId,
+                    blobUrl,
+                    pageNumber,
+                    tableId,
+                    year,
+                    documentType,
+                    table_without_caption
+                };
+                
+                // Update selected tables by document
+                setSelectedTablesByDocument(prev => ({
+                    ...prev,
+                    [docId]: tableId
+                }));
+                
+                return [...prevTables, newTable];
+            }
+        });
+
+        setSelectedSecondaryTableId(prev => prev === tableId ? null : tableId);
+    }, [currentCompanyDocuments]);
+
+    // Handle tab change
+    const handleTabChange = useCallback((value: string) => {
+        setActiveTab(value);
+
+        // If combined table tab is selected, fetch preview data
+        if (value === "combined-table" && selectedTables.length > 0) {
+            handleFetchPreviewData();
+        }
+    }, [selectedTables.length]);
+
+    // Handle fetch preview data
+    const handleFetchPreviewData = useCallback(async () => {
+        if (selectedTables.length === 0 || !activeDocument) return;
+
+        setIsPreviewDataLoading(true);
+        setError(null);
+
+        try {
+            // Build payload with all selected tables (primary + all secondary tables)
+            const payloadTables = [];
+
+            // Add primary table data if it exists in selected tables
+            const primaryTable = selectedTables.find(table => table.id === activeDocument.id);
+            if (primaryTable) {
+                payloadTables.push({
+                    id: primaryTable.id,
+                    blob_url: primaryTable.blobUrl,
+                    page_number: primaryTable.pageNumber,
+                    table_id: primaryTable.tableId.toString(),
+                    year: parseInt(primaryTable.year),
+                    document_type: primaryTable.documentType
+                });
+            }
+
+            // Add all selected secondary tables
+            const secondaryTables = selectedTables.filter(table => table.id !== activeDocument.id);
+            secondaryTables.forEach(table => {
+                payloadTables.push({
+                    id: table.id,
+                    blob_url: table.blobUrl,
+                    page_number: table.pageNumber,
+                    table_id: table.tableId.toString(),
+                    year: parseInt(table.year),
+                    document_type: table.documentType
+                });
+            });
+
+            if (payloadTables.length === 0) {
+                throw new Error('No tables selected');
+            }
+
+            console.log('Sending payload with tables:', payloadTables);
+
+            // Build payload according to CombinedTablesPayload interface
+            const payload: CombinedTablesPayload = {
+                tables: payloadTables
+            };
+
+            await dispatch(fetchPreviewData(payload));
+        } catch (err) {
+            console.error('Error fetching preview data:', err);
+            setError('Failed to fetch preview data');
+        } finally {
+            setIsPreviewDataLoading(false);
+        }
+    }, [dispatch, selectedTables, activeDocument]);
+
+    // Handle modal close
+    const handleClose = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        dispatch(setIsSimilarTablesOpen(false));
+
+        // Reset state when closing
+        setActiveTab("primary-table");
+        setSelectedTables([]);
+        setSelectedDocumentsList([]);
+        setSimilarTablesData([]);
+        setSimilarTablesByYear({});
+        setPrimaryTableData(null);
+        setError(null);
+        setSelectedSecondaryTableId(null);
+        setSelectedTablesByDocument({});
+        setShowSimilarTables(false);
+        setIsPreviewDataLoading(false);
+    }, [dispatch]);
 
     // Initialize primary table data when modal opens
     useEffect(() => {
@@ -247,79 +542,6 @@ export function SimiliarTables() {
         }
     }, [similarTablesState, tableId, processSimilarTablesData]);
 
-    // Handle table selection for secondary tables
-    const handleTableSelection = useCallback((
-        docId: number,
-        tableId: string | number,
-        blobUrl: string,
-        pageNumber: number,
-        year: string,
-        documentType: string
-    ) => {
-        setSelectedTables(prevTables => {
-            const existingIndex = prevTables.findIndex(
-                table => table.id === docId && table.tableId === tableId
-            );
-
-            if (existingIndex !== -1) {
-                // Remove if already selected
-                return prevTables.filter((_, index) => index !== existingIndex);
-            } else {
-                // Add new selection
-                const newTable: SelectedTable = {
-                    id: docId,
-                    blobUrl,
-                    pageNumber,
-                    tableId,
-                    year,
-                    documentType,
-                    table_without_caption: ""
-                };
-                return [...prevTables, newTable];
-            }
-        });
-
-        setSelectedSecondaryTableId(prev => prev === tableId ? null : tableId);
-    }, []);
-
-    // Handle document selection
-    const handleDocumentSelection = useCallback((docId: number) => {
-        const selectedDoc = currentCompanyDocuments.find((doc: any) => doc.id === docId);
-        if (!selectedDoc) return;
-
-        const docSelection: SelectedDocument = {
-            id: docId,
-            url: selectedDoc.url,
-            year: selectedDoc.year,
-            documentType: selectedDoc.documentType
-        };
-
-        setSelectedDocumentsList([docSelection]);
-        setActiveTab(`doc-${docId}`);
-    }, [currentCompanyDocuments]);
-
-    // Handle tab change
-    const handleTabChange = useCallback((value: string) => {
-        setActiveTab(value);
-    }, []);
-
-    // Handle modal close
-    const handleClose = useCallback((e: React.MouseEvent) => {
-        e.stopPropagation();
-        dispatch(setIsSimilarTablesOpen(false));
-        
-        // Reset state when closing
-        setActiveTab("primary-table");
-        setSelectedTables([]);
-        setSelectedDocumentsList([]);
-        setSimilarTablesData([]);
-        setSimilarTablesByYear({});
-        setPrimaryTableData(null);
-        setError(null);
-        setSelectedSecondaryTableId(null);
-        setShowSimilarTables(false);
-    }, [dispatch]);
-
     // Early returns for various states
     if (!isSimilarTablesOpen) {
         return null;
@@ -332,16 +554,28 @@ export function SimiliarTables() {
     if (!hasCompanyDocuments) {
         return (
             <div className="fixed inset-0 bg-[#0026731A]/30 backdrop-blur-sm z-50" onClick={handleClose}>
-                <div className="fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg">
-                    <p className="text-gray-600 mb-4">No company documents found.</p>
-                    <button
-                        onClick={handleClose}
-                        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                    >
-                        Close
-                    </button>
+            <div className="fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] w-full max-w-[1400px]" onClick={(e) => e.stopPropagation()}>
+                <div className="bg-[#f5f7fa] rounded-lg h-[750px] flex flex-col">
+
+                    {/* Header */}
+                    <header className="flex items-center rounded-t-lg justify-between h-[40px] w-full bg-white border-b border-[#eaf0fc] p-2.5">
+                        <div className="flex items-center gap-2">
+                            <Image src={SimiliarTableIcon} alt="Similar Table Icon" width={24} height={24} />
+                            <h2 className="text-lg font-medium text-text-primary">Export similar tables</h2>
+                        </div>
+                        <X size={20} className='text-text-primary cursor-pointer' onClick={handleClose} />
+                    </header>
+
+                    <main className="flex-1 overflow-hidden h-full w-full rounded-b-lg">
+                        <div className="flex flex-col items-center justify-center gap-2 w-full h-full">
+                            <Loader2 className="w-8 h-8 text-[#004CE6] animate-spin" />
+                            <p className="text-gray-600 text-lg">Searching company documents</p>
+                        </div>
+                    </main>
+
                 </div>
             </div>
+        </div>
         );
     }
 
@@ -355,9 +589,6 @@ export function SimiliarTables() {
                         <div className="flex items-center gap-2">
                             <Image src={SimiliarTableIcon} alt="Similar Table Icon" width={24} height={24} />
                             <h2 className="text-lg font-medium text-text-primary">Export similar tables</h2>
-                            {isLoading && (
-                                <div className="ml-2 text-sm text-blue-600">Loading...</div>
-                            )}
                         </div>
                         <X size={20} className='text-text-primary cursor-pointer' onClick={handleClose} />
                     </header>
@@ -370,13 +601,13 @@ export function SimiliarTables() {
                     )}
 
                     {/* Main Content */}
-                    <main className="flex-1 overflow-hidden h-full rounded-b-lg">
+                    <main className="flex-1 overflow-hidden h-full w-full rounded-b-lg">
                         <Tabs value={activeTab} onValueChange={handleTabChange} className="flex items-center justify-start w-full h-full bg-white">
 
                             <TabsList className="w-[20%] p-2 h-full bg-[#FAFCFF] border-r border-[#eaf0fc] rounded-none flex flex-col items-center justify-start gap-2.5">
                                 <TabsTrigger
                                     value="primary-table"
-                                    className="w-full border !border-[#004CE6] text-[#001742] bg-white hover:bg-white p-2 flex items-center justify-between shadow-custom-blue"
+                                    className="w-full border !border-[#eaf0fc] text-[#001742] hover:!border-[#DEE6F5] bg-white hover:bg-white p-2 flex items-center justify-between shadow-custom-blue data-[state=active]:!border-[#004CE6] data-[state=active]:!border"
                                 >
                                     {activeDocument?.name
                                         .replace(/[^a-zA-Z0-9\s]/g, " ")
@@ -389,34 +620,41 @@ export function SimiliarTables() {
                                         key={doc.id}
                                         value={`doc-${doc.id}`}
                                         disabled={!hasCompanyDocuments || isLoading}
-                                        className="w-full border !border-[#eaf0fc] bg-white hover:bg-white hover:!border-[#DEE6F5] p-2 flex items-center justify-between hover:shadow-custom-blue disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="w-full h-[38px] border !border-[#eaf0fc] bg-white hover:bg-white hover:!border-[#DEE6F5] p-2 flex !items-center justify-between hover:shadow-custom-blue disabled:opacity-50 data-[state=active]:!border-[#004CE6] data-[state=active]:!border data-[state=disabled]:cursor-not-allowed"
                                         onClick={() => handleDocumentSelection(doc.id)}
                                     >
                                         <div className="flex flex-col items-start text-left">
-                                                {doc.name.replace(/[^a-zA-Z0-9\s]/g, " ").toUpperCase()}
+                                            {doc.name.replace(/[^a-zA-Z0-9\s]/g, " ").toUpperCase()}
                                         </div>
                                         {isLoading ? (
                                             <Loader2 className="w-4 h-4 text-[#004CE6] animate-spin" />
                                         ) : (
-                                            <Checkbox
-                                                className="border-border-primary data-[state=checked]:!border-[#004CE6] data-[state=checked]:!bg-[#004CE6] data-[state=checked]:!text-white data-[state=checked]:!opacity-100"
-                                                checked={selectedDocumentsList.some((selectedDoc) => selectedDoc.id === doc.id)}
-                                            />
+                                            <div onClick={(e) => handleCheckboxClick(e, doc.id)}>
+                                                <Checkbox
+                                                    className="h-[16px] w-[16px] mt-[2px] border-border-primary data-[state=checked]:!border-[#004CE6] data-[state=checked]:!bg-[#004CE6] data-[state=checked]:!text-white data-[state=checked]:!opacity-100 disabled:cursor-not-allowed"
+                                                    checked={selectedDocumentsList.some((selectedDoc) => selectedDoc.id === doc.id)}
+                                                    onCheckedChange={(checked) => handleDocumentCheckboxChange(doc.id, checked as boolean)}
+                                                />
+                                            </div>
                                         )}
                                     </TabsTrigger>
                                 ))}
 
                                 <TabsTrigger
                                     value="combined-table"
-                                    className="w-full border !border-[#eaf0fc] text-[#001742] bg-white hover:bg-white p-2 flex items-center justify-center gap-2"
+                                    className="w-full h-[38px] border !border-[#eaf0fc] text-[#001742] bg-white hover:bg-white p-2 flex items-center justify-center gap-2"
                                     disabled={!hasSelectedTables}
                                 >
-                                    <Image src={Excelcon} alt="Excel Icon" width={24} height={24} />
-                                    Combine selected tables
+                                    {isPreviewDataLoading ? (
+                                        <Loader2 className="w-4 h-4 text-[#004CE6] animate-spin" />
+                                    ) : (
+                                        <Image src={Excelcon} alt="Excel Icon" width={24} height={24} />
+                                    )}
+                                    {isPreviewDataLoading ? "Combining selected tables" : "Combine selected tables"}
                                 </TabsTrigger>
                             </TabsList>
 
-                            <TabsContent value="primary-table" className="w-[75%] h-full bg-white m-0 px-4 py-3 overflow-y-auto scrollbar-hide">
+                            <TabsContent value="primary-table" className="w-[80%] h-full bg-white m-0 px-4 py-3 overflow-y-auto scrollbar-hide">
                                 <PrimaryTable
                                     primaryTableData={primaryTableData}
                                     primaryTableImage={primaryTableData?.table_without_caption || ""}
@@ -425,22 +663,47 @@ export function SimiliarTables() {
 
                             {filteredCompanyDocuments.map((doc: any) => {
                                 const { bestMatch, otherMatches } = getTablesForYear(doc.year);
-                                
+                                const isDocumentSelected = selectedDocumentsList.some((selectedDoc) => selectedDoc.id === doc.id);
+                                const hasSelectedTableFromThisDoc = selectedTables.some(table => table.id === doc.id);
+                                const selectedTableId = selectedTablesByDocument[doc.id];
+
                                 return (
-                                    <TabsContent 
+                                    <TabsContent
                                         key={doc.id}
-                                        value={`doc-${doc.id}`} 
+                                        value={`doc-${doc.id}`}
                                         className="w-[80%] h-full bg-white m-0 overflow-hidden"
                                     >
-                                        <SecondaryTable 
+                                        <SecondaryTable
                                             bestMatchTable={bestMatch || {}}
                                             otherMatches={otherMatches || []}
+                                            isDocumentSelected={isDocumentSelected}
+                                            hasSelectedTableFromThisDoc={hasSelectedTableFromThisDoc}
+                                            selectedTableId={selectedTableId}
                                             onTabChange={(value) => {
                                                 if (value === 'best-match' && bestMatch) {
-                                                    setSelectedSecondaryTableId(bestMatch.table_id);
+                                                    handleTableSelection(
+                                                        doc.id,
+                                                        bestMatch.table_id,
+                                                        doc.url,
+                                                        bestMatch.page_number,
+                                                        doc.year,
+                                                        doc.documentType,
+                                                        bestMatch.table_without_caption || ""
+                                                    );
                                                 } else if (value.startsWith('other-match-')) {
                                                     const tableId = value.replace('other-match-', '');
-                                                    setSelectedSecondaryTableId(tableId);
+                                                    const selectedMatch = otherMatches.find((match: any) => match.table_id === tableId);
+                                                    if (selectedMatch) {
+                                                        handleTableSelection(
+                                                            doc.id,
+                                                            selectedMatch.table_id,
+                                                            doc.url,
+                                                            selectedMatch.page_number,
+                                                            doc.year,
+                                                            doc.documentType,
+                                                            selectedMatch.table_without_caption || ""
+                                                        );
+                                                    }
                                                 }
                                             }}
                                         />
@@ -448,7 +711,7 @@ export function SimiliarTables() {
                                 );
                             })}
 
-                            <TabsContent value="combined-table" className="w-[75%] h-full bg-white m-0 overflow-y-auto scrollbar-hide">
+                            <TabsContent value="combined-table" className="w-[80%] h-full bg-white m-0 overflow-y-auto scrollbar-hide">
                                 <CombinedTable />
                             </TabsContent>
 

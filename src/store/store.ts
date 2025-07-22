@@ -15,7 +15,6 @@ import recentUploadedReducer from "@/redux/recentUploadedDocuments/recentUploade
 import summaryReducer from "@/redux/aiSummary/aiSummarySlice";
 import chunksReducer from "@/redux/chunks/chunksSlice";
 import financialStatementsReducer from "@/redux/FinancialStatements/financialStatements.slice";
-import similarTablesReducer from "@/redux/similarTables/similarTablesSlice";
 import similarTablesModalReducer from "@/redux/modals/similarTables/similarTablesSlice";
 import researchReportReducer from "@/redux/researchReport/researchReportSlice";
 
@@ -37,7 +36,6 @@ const store = configureStore({
     createProjectModal: createProjectModalReducer,
     summary: summaryReducer,
     financialStatements: financialStatementsReducer,
-    similarTable: similarTablesReducer,
     similarTables: similarTablesModalReducer,
   },
   middleware: (getDefaultMiddleware) =>

@@ -1,59 +1,176 @@
-import { ApiService } from "@/services/service";
-import { RootState } from "@/store/store";
-import { createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
-import { getSession } from "next-auth/react";
+import { createAsyncThunk } from '@reduxjs/toolkit';
+import axios from 'axios';
+import { getSession } from 'next-auth/react';
+import { SIMILAR_TABLES_API_URL } from '@/constant/constant';
+import { baseUrl } from '@/utils/utils';
+import { CombinedTablesPayload, CombinedTablesResponse } from './similiartable.interface';
 
-export const fetchSimilarTables = createAsyncThunk<
-  any,
-  any,
-  { state: RootState; rejectValue: string }
->("documents/fetchGraph", async (documentId, { getState, rejectWithValue }) => {
-  const session = await getSession();
-  const { tableData } = getState().documents;
-  const { id } = tableData;
+export interface FetchSimilarTablesPayload {
+  sourceUrl: string;
+  tableId: string;
+  pageNumber: number;
+  compatiorUrls: string[];
+}
 
-  if (id === documentId) {
-    return rejectWithValue("Graph Data is Presenet with this document Id!!");
-  }
+export interface SimilarTablesResponse {
+  [key: string]: any;
+}
+
+export interface FetchSimilarTablesResponse {
+  tableId: string;
+  pageNumber: number;
+  data: SimilarTablesResponse;
+}
+
+export interface FetchPreviewDataResponse {
+  data: any;
+}
+
+// ============================================================================
+// API UTILITY FUNCTIONS
+// ============================================================================
+
+/**
+ * Attempts to fetch processed similar tables data from cache
+ */
+const fetchProcessedSimilarTables = async (
+  sourceUrl: string,
+  tableId: string
+): Promise<SimilarTablesResponse | null> => {
   try {
-    const tableResponse = await ApiService.apiCall(
-      "get",
-      `/documents/table/${documentId}`,
-      {},
-      session?.accessToken,
-    );
+    const processedUrl = `${baseUrl(sourceUrl)}/Processed/SimilarTables/${tableId}.json`;
+    const response = await fetch(processedUrl);
 
-    return { id: documentId, data: tableResponse.data };
+    if (response.ok) {
+      return await response.json();
+    }
+
+    return null;
   } catch (error) {
-    return rejectWithValue("Internal server Error!!");
+    console.info('Processed data not available, will fall back to API');
+    return null;
   }
+};
 
-});
+/**
+ * Fetches similar tables data from the API
+ */
+const fetchSimilarTablesFromAPI = async (
+  payload: FetchSimilarTablesPayload,
+  accessToken: string | undefined
+): Promise<SimilarTablesResponse> => {
+  const { sourceUrl, tableId, pageNumber, compatiorUrls } = payload;
 
-export const fetchPreviewData = createAsyncThunk<
-  any,
-  {data: any, tableId: string},
-  { state: RootState; rejectValue: string }
->("documents/fetchPreviewData", async ({data, tableId}, { getState, rejectWithValue }) => {
-  const session = await getSession();
-  const { previewData } = getState().similarTables;
-  const preview = previewData[tableId];
-  if(preview) {
-    return rejectWithValue("Preview data is already present!!");
-  }
-  try {
-    const previewResponse = await axios.post(`${process.env.NEXT_PUBLIC_PREVIEW_DATA_API_URL}`, {
-      data,
-      tableId
-    }, {
+  const response = await axios.post(
+    SIMILAR_TABLES_API_URL,
+    {
+      table_id: tableId,
+      competitor_pdf_urls: compatiorUrls,
+      source_pdf: sourceUrl,
+      page_number: pageNumber,
+    },
+    {
       headers: {
-        'Authorization': `Bearer ${session?.accessToken}`
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+
+  return response.data?.result || {};
+};
+
+// ============================================================================
+// ASYNC THUNKS
+// ============================================================================
+
+/**
+ * Fetches similar tables data with fallback strategy:
+ * 1. Try to fetch from processed/cached data
+ * 2. If not available, fetch from API
+ */
+export const fetchSimilarTables = createAsyncThunk<
+  FetchSimilarTablesResponse,
+  FetchSimilarTablesPayload
+>(
+  'similarTables/fetchSimilarTables',
+  async (payload, { rejectWithValue }) => {
+    const { sourceUrl, tableId, pageNumber } = payload;
+
+    try {
+      const session = await getSession();
+
+      // Step 1: Try to fetch from processed data first
+      const processedData = await fetchProcessedSimilarTables(sourceUrl, tableId);
+
+      if (processedData) {
+        console.info(`Successfully fetched processed data for table ${tableId}`);
+        return {
+          tableId,
+          pageNumber,
+          data: processedData,
+        };
       }
-    });
-    const response = {[data[1].documentType]: {[data[1].year]: previewResponse.data}};
-    return {data: response, tableId};
-  } catch (error) {
-    return rejectWithValue("Internal server Error!!");
+
+      // Step 2: Fallback to API call
+      console.info(`Fetching from API for table ${tableId}`);
+      const apiData = await fetchSimilarTablesFromAPI(payload, session?.accessToken);
+
+      return {
+        tableId,
+        pageNumber,
+        data: apiData,
+      };
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch similar tables';
+      console.error('Error fetching similar tables:', {
+        tableId,
+        error: errorMessage,
+        payload,
+      });
+
+      return rejectWithValue({
+        message: errorMessage,
+        tableId,
+        timestamp: new Date().toISOString(),
+      });
+    }
   }
-});
+);
+
+/**
+ * Fetches preview data for a specific table
+ * TODO: Implement actual preview data fetching logic based on your API
+ */
+export const fetchPreviewData = createAsyncThunk<
+  CombinedTablesResponse,
+  CombinedTablesPayload
+>(
+  'similarTables/fetchPreviewData',
+  async (payload: CombinedTablesPayload, { rejectWithValue }) => {
+    try {
+      const session = await getSession();
+
+      const response = await axios.post(`https://backend-staging.bynd.ai/django/api/join-similar-tables/`, payload, {
+        headers: {
+          Authorization: `Bearer ${session?.accessToken}`,
+        },
+      });
+
+      if (!response.data) {
+        throw new Error('No preview data received');
+      }
+
+      return response.data;
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch preview data';
+      console.error('Error fetching preview data:', error);
+      
+      return rejectWithValue({
+        message: errorMessage,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+);

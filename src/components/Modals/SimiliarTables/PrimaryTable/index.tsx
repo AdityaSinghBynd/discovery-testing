@@ -16,9 +16,9 @@ const PrimaryTable = ({ primaryTableData, primaryTableImage }: PrimaryTableData)
     <div className='min-w-[800px] max-w-[800px] max-h-max border-2 !border-[#004CE640] rounded-md shadow-sm overflow-hidden'>
 
       <header className='w-full bg-white px-3 py-2 flex items-center justify-between rounded-t-md'>
-        <div className='flex flex-col items-start'>
+        <div className='flex items-center justify-between w-full gap-2'>
           <h3 className='text-lg font-medium text-text-primary'>{primaryTableData.title}</h3>
-          <p className='text-sm text-text-secondary'>Page: {primaryTableData.page_number}</p>
+          <p className='text-md font-medium text-text-secondary'>Page: {primaryTableData.page_number}</p>
         </div>
       </header>
 

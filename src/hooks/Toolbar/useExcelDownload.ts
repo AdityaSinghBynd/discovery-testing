@@ -52,7 +52,7 @@ export const useExcelDownload = () => {
         document.body.removeChild(link);
 
         toast.update(toastId, {
-          render: "Download has been Started.",
+          render: "Table has been downloaded.",
           type: "success",
           isLoading: false,
           autoClose: 3000,

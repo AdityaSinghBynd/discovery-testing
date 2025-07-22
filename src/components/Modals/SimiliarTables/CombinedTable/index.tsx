@@ -1,189 +1,118 @@
 "use client";
 
 import React from 'react'
+// Redux
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 // Components
-// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import HTMLToShadcnTable from '@/components/Html/Table';
-// Types & Constants
-// const DEFAULT_CURRENCY = "inr";
-// const DEFAULT_UNIT = "lakhs";
-// const DEFAULT_DECIMALS = "2";
-
-// interface SelectGroupProps {
-//   label: string;
-//   children: React.ReactNode;
-// }
-
-const mergeMockData = `<table>\n <tr>\n <th>Particulars</th>
-        <th>2021</th>
-        <th>2022</th>
-        <th>2023</th>
-        <th>2024</th>\n
-    </tr>\n <tr>\n <td>Food delivery</td>
-        <td>2160.00</td>
-        <td>4760.00</td>
-        <td>6150.00</td>
-        <td>-</td>\n
-    </tr>\n <tr>\n <td>Food delivery</td>
-        <td>-</td>
-        <td>-766</td>
-        <td>-10</td>
-        <td>912</td>\n
-    </tr>\n <tr>\n <td>Hyperpure (B2B supplies)</td>
-        <td>200.00</td>
-        <td>540.00</td>
-        <td>1510.00</td>
-        <td>-</td>\n
-    </tr>\n <tr>\n <td>Quick commerce(1)</td>
-        <td>-</td>
-        <td>-</td>
-        <td>-562</td>
-        <td>-384</td>\n
-    </tr>\n <tr>\n <td>Quick commerce</td>
-        <td>-</td>
-        <td>-</td>
-        <td>810.00</td>
-        <td>-</td>\n
-    </tr>\n <tr>\n <td>Going-out(2)</td>
-        <td>-</td>
-        <td>-</td>
-        <td>-13</td>
-        <td>-6</td>\n
-    </tr>\n <tr>\n <td>Others</td>
-        <td>280.00</td>
-        <td>240.00</td>
-        <td>230.00</td>
-        <td>-</td>\n
-    </tr>\n <tr>\n <td>B2B supplies (Hyperpure)</td>
-        <td>-</td>
-        <td>-139</td>
-        <td>-194</td>
-        <td>-126</td>\n
-    </tr>\n <tr>\n <td>Total</td>
-        <td>2650.00</td>
-        <td>5540.00</td>
-        <td>8690.00</td>
-        <td>-</td>\n
-    </tr>\n <tr>\n <td>Others(3)</td>
-        <td>-</td>
-        <td>-68</td>
-        <td>-3</td>
-        <td>-24</td>\n
-    </tr>\n <tr>\n <td>YoY % change</td>
-        <td>-15.0%</td>
-        <td>109.0%</td>
-        <td>57.0%</td>
-        <td>-</td>\n
-    </tr>\n <tr>\n <td>Total</td>
-        <td>-</td>
-        <td>-973</td>
-        <td>-783</td>
-        <td>372</td>\n
-    </tr>\n <tr>\n <td>Total (ex-quick commerce)</td>
-        <td>2650.00</td>
-        <td>5540.00</td>
-        <td>7890.00</td>
-        <td>-</td>\n
-    </tr>\n <tr>\n <td>YoY % change</td>
-        <td>-15.0%</td>
-        <td>109.0%</td>
-        <td>42.0%</td>
-        <td>-</td>\n
-    </tr>\n</table>`;
-
-// const SelectGroup: React.FC<SelectGroupProps> = ({ label, children }) => (
-//   <div className="flex flex-col gap-2">
-//     <label className="text-sm font-medium text-text-primary">{label}</label>
-//     {children}
-//   </div>
-// );
-
-// const units = [
-//   { value: 'lakhs', label: 'Lakhs' },
-//   { value: 'crores', label: 'Crores' },
-//   { value: 'millions', label: 'Millions' },
-//   { value: 'billions', label: 'Billions' }
-// ];
-
-// const currencies = [
-//   { value: 'inr', label: 'INR' },
-//   { value: 'usd', label: 'USD' },
-//   { value: 'eur', label: 'EUR' },
-//   { value: 'gbp', label: 'GBP' }
-// ];
-
-// const decimals = [0, 1, 2, 3, 4];
+import { Loader2 } from 'lucide-react';
+import { useExcelDownload } from '@/hooks/Toolbar/useExcelDownload';
+import { useToast } from '@/hooks/use-toast';
 
 const CombinedTable = () => {
-  // const [selectedCurrency, setSelectedCurrency] = React.useState(DEFAULT_CURRENCY);
-  // const [selectedUnit, setSelectedUnit] = React.useState(DEFAULT_UNIT);
-  // const [selectedDecimal, setSelectedDecimal] = React.useState(DEFAULT_DECIMALS);
+  const { downloadExcel } = useExcelDownload();
+  const { toast } = useToast();
+  // Redux Selectors
+  const { previewData, tableId, activeDocument } = useSelector((state: RootState) => ({
+    previewData: state.similarTables.previewData,
+    tableId: state.similarTables.tableId,
+    activeDocument: state.projectDocuments.activeDocument
+  }));
+
+  const handleExport = () => {
+    if (!previewData[tableId][activeDocument.documentType][activeDocument.year][tableId].data.merged_table.html) {
+      toast({
+        title: "No preview data available for export",
+        description: "Please try again",
+        variant: "destructive",
+      });
+      return;
+    }
+    try {
+      toast({
+        title: "Exporting data",
+        description: "Please wait",
+        variant: "default",
+      });
+      downloadExcel(previewData[tableId][activeDocument.documentType][activeDocument.year][tableId].data.merged_table.html, "combined_tables");
+      toast({
+        title: "Data exported successfully",
+        description: "Please check your downloads",
+        variant: "default",
+      });
+    } catch (error) {
+      toast({
+        title: "Error exporting data",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Get preview data for current table - navigate through the nested structure
+  const getPreviewData = () => {
+    if (!tableId || !activeDocument) return null;
+
+    const tablePreviewData = previewData[tableId];
+    if (!tablePreviewData) return null;
+
+    const documentType = activeDocument.documentType;
+    const year = activeDocument.year;
+
+    const yearData = tablePreviewData[documentType]?.[year];
+    if (!yearData) return null;
+
+    // Get the first available preview data item
+    const firstTableId = Object.keys(yearData)[0];
+    return firstTableId ? yearData[firstTableId] : null;
+  };
+
+  const currentPreviewData = getPreviewData();
+  const isLoading = currentPreviewData?.loading || false;
+  const error = currentPreviewData?.error || null;
+  const data = currentPreviewData?.data || null;
+
+  // Use preview data if available, otherwise fallback to mock data
+  const tableContent = data?.merged_table?.html;
 
   return (
-    <div className='w-full h-full flex flex-col items-start justify-between gap-2'>
-      <main className='w-full h-full flex flex-col items-start justify-start gap-2'>
+    <div className='w-full h-full flex flex-col'>
+      <main className='flex-1 overflow-auto scrollbar-hide'>
         <div className="flex flex-col items-start px-3 py-2 w-full bg-white gap-4">
-          
-          {/* <div className="grid grid-cols-1 md:grid-cols-3 max-w-max gap-3">
 
-            <SelectGroup label="Currency">
-              <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
-                <SelectTrigger className="w-[250px] border !border-[#eaf0fc]">
-                  <SelectValue placeholder="Select currency" />
-                </SelectTrigger>
-                <SelectContent className='bg-white border !border-[#eaf0fc] shadow-custom-blue'>
-                  {currencies.map(({ value, label }) => (
-                    <SelectItem key={value} value={value} className="cursor-pointer">
-                      {label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </SelectGroup>
+          {/* Loading State */}
+          {isLoading && (
+            <div className="w-full h-[70vh] flex items-center justify-center gap-2 py-8">
+              <div className="h-full w-full flex flex-col items-center justify-center gap-3">
+                <Loader2 className="w-7 h-7 animate-spin text-[#004CE6]" />
+                <span className="text-lg text-gray-600">Combining selected tables</span>
+              </div>
+            </div>
+          )}
 
-            <SelectGroup label="Unit">
-              <Select value={selectedUnit} onValueChange={setSelectedUnit}>
-                <SelectTrigger className="w-[250px] border !border-[#eaf0fc]">
-                  <SelectValue placeholder="Select unit" />
-                </SelectTrigger>
-                <SelectContent className='bg-white border !border-[#eaf0fc] shadow-custom-blue'>
-                  {units.map(({ value, label }) => (
-                    <SelectItem key={value} value={value} className="cursor-pointer">
-                      {label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </SelectGroup>
-
-            <SelectGroup label="Decimal">
-              <Select value={selectedDecimal} onValueChange={setSelectedDecimal}>
-                <SelectTrigger className="w-[250px] border !border-[#eaf0fc]">
-                  <SelectValue placeholder="Select decimal" />
-                </SelectTrigger>
-                <SelectContent className='bg-white border !border-[#eaf0fc] shadow-custom-blue'>
-                  {decimals.map(value => (
-                    <SelectItem key={value} value={value.toString()} className="cursor-pointer">
-                      {value}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </SelectGroup>
-          </div> */}
+          {/* Error State */}
+          {error && (
+            <div className="w-full p-4 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-sm text-red-700">Error combining tables: {error}</p>
+            </div>
+          )}
 
           {/* HTML Table */}
-          <div className='w-full h-full bg-white border border-[#eaf0fc] rounded-md'>
-            <HTMLToShadcnTable htmlContent={mergeMockData} />
-          </div>
+          {!isLoading && !error && (
+            <div className='w-full bg-white border border-[#eaf0fc] rounded-md'>
+              <HTMLToShadcnTable htmlContent={tableContent} />
+            </div>
+          )}
 
         </div>
       </main>
 
-      <footer className='w-full px-3 py-2 bg-white border-t border-[#eaf0fc] flex items-center justify-end'>
-        <button 
-          className='px-4 py-2 bg-[#017736] text-white rounded-md hover:bg-[#015e2b] transition-colors'
-          // onClick={() => console.log('Export clicked', { selectedCurrency, selectedUnit, selectedDecimal })}
+      <footer className='w-full px-3 py-2 bg-[#FAFCFF] border-t border-[#DEE6F5] flex items-center justify-end flex-shrink-0'>
+        <button
+          onClick={handleExport}
+          className='px-4 py-2 bg-[#017736] text-white rounded-md hover:bg-[#015e2b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+          disabled={isLoading || !!error}
         >
           Export in Excel
         </button>

@@ -1,7 +1,3 @@
-// ==========================================
-// SIMILAR TABLES API INTERFACES
-// ==========================================
-
 // Base table interface with common properties
 export interface BaseTable {
   table_id: string;
@@ -46,14 +42,10 @@ export interface SimilarTablesResponse {
 
 export interface CombinedTableItem {
   id: number;
-  blobUrl: string;
-  blob_url: string; // API uses snake_case
-  documentType: string;
-  document_type: string; // API uses snake_case
-  pageNumber: number;
+  blob_url: string;
+  document_type: string;
   page_number: number; // API uses snake_case
-  tableId: string;
-  table_id: string; // API uses snake_case
+  table_id: string;
   year: number;
 }
 
